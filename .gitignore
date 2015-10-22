@@ -1,0 +1,7 @@
+.idea/
+target/
+sms_email_api.iml
+src/main/webapp/WEB-INF/logs/log.log
+*.log
+src/main/webapp/WEB-INF/logs/error.log.2014-02-12
+*.iml
