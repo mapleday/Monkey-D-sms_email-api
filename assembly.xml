@@ -39,7 +39,7 @@
 			</includes>
 		</fileSet>
 		<fileSet>
-			<directory>src/main/envs/${profile.active}/yaml</directory>
+			<directory>src/envs/${profile.active}/yaml</directory>
 			<outputDirectory>/</outputDirectory>
 		</fileSet>
 	</fileSets>
