@@ -1,0 +1,5 @@
+appid: 11526
+install: [jetty]
+setenv: {'JVM_ARGS':'-Xms6144m -Xmx6144m -Xmn1024m -Djava.awt.headless=true -XX:MaxPermSize=512m -Dfile.encoding=UTF-8 -javaagent:/opt/src/app/OneAPM/oneapm.jar'}
+start: $JETTY_START
+webHealth: true
