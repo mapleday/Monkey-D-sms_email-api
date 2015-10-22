@@ -1,7 +1,10 @@
 package com.sohu.sms_email.controller;
 
+import com.sohu.sms_email.service.EmailErrorLogService;
 import com.sohu.sms_email.service.EmailService;
+import com.sohu.sms_email.service.SmsErrorLogService;
 import com.sohu.sms_email.service.SmsService;
+import com.sohu.sns.common.utils.json.JsonMapper;
 import com.sohu.snscommon.utils.LOGGER;
 import com.sohu.snscommon.utils.constant.ModuleEnum;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,11 +19,16 @@ public class ApiController {
 
 	private static final String SUCCESS = "success";
 	private static final String FAILURE = "failure";
+	private JsonMapper jsonMapper = JsonMapper.nonDefaultMapper();
 
 	@Autowired
 	private SmsService smsService;
 	@Autowired
 	private EmailService emailService;
+	@Autowired
+	private SmsErrorLogService smsErrorLogService;
+	@Autowired
+	private EmailErrorLogService emailErrorLogService;
 
 	/**
 	 * 发送短信
@@ -60,5 +68,41 @@ public class ApiController {
 		LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSimpleEmail", subject+"_"+text+"_"+to, null);
 		return SUCCESS;
 	}
-	
+
+	/**
+	 * 收集出现的实例与错误的总数，以便发送短信
+	 * @param instanceCount	出现错误的机器实例个数
+	 * @param errorCount	出现的错误总数
+	 * @return
+	 */
+	@RequestMapping("sendErrorLogSms")
+	@ResponseBody
+	public String receiveErrorLogSms(@RequestParam("instanceCount") String instanceCount, @RequestParam("errorCount") String errorCount) {
+		if(null == instanceCount || 0 == instanceCount.length() || null == errorCount || 0 == errorCount.length()) {
+			return FAILURE;
+		}
+		int instanceNum = Integer.parseInt(instanceCount);
+		int errorNum = Integer.parseInt(errorCount);
+
+		smsErrorLogService.handleSmsErrorLog(instanceNum, errorNum);
+		return SUCCESS;
+	}
+
+	/**
+	 * 收集错误的详细信息，以便发送邮件
+	 * @param instanceCount	出现错误的实例的总数
+	 * @param errorDetail	错误的详情
+	 * @return
+	 */
+	@RequestMapping("sendErrorLogEmail")
+	@ResponseBody
+	public String receiveErrorLogEmail(@RequestParam("instanceCount") String instanceCount, @RequestParam("errorDetail") String errorDetail) {
+		if(null == instanceCount || 0 == instanceCount.length() || null == errorDetail ) {
+			return FAILURE;
+		}
+
+		int instanceNum = Integer.parseInt(instanceCount);
+		emailErrorLogService.handleEmailErrorLog(instanceNum, errorDetail);
+		return SUCCESS;
+	}
 }
