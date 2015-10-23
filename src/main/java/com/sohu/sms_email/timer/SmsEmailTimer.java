@@ -5,7 +5,9 @@ import com.sohu.sms_email.bucket.SmsErrorLogBucket;
 import com.sohu.sms_email.model.EmailDetail;
 import com.sohu.sms_email.model.SmsCount;
 import com.sohu.snscommon.utils.EmailUtil;
+import com.sohu.snscommon.utils.LOGGER;
 import com.sohu.snscommon.utils.SMS;
+import com.sohu.snscommon.utils.constant.ModuleEnum;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -25,13 +27,13 @@ public class SmsEmailTimer {
     private static final String MSG_TEMPLATE = "你好，过去的5分钟共有%d台服务器实例出现错误，一共出现%d个错误信息，详情请查收邮件。";
     private static final String EMAIL_TEMPLATE = "你好，过去的5分钟共有%d台服务器实例出现错误，详情如下：\n";
     private static final String SUBJECT = "服务器错误提醒";
-    private static final String TO = "shouqinchen@sohu-inc.com";
+    private static final String TO = "morganyang@sohu-inc.com";
     private static boolean isProcess = false;
 
-    @Scheduled(cron = "0 0/6 * * * ? ")
+    @Scheduled(cron = "0 0/5 * * * ? ")
     //@Scheduled(cron = "0/30 * * * * ? ")
     public void sendSmsAndEmail() {
-        System.out.println("sendSmsAndEmail timer ...... time : " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+        System.out.println("sendErrorLogBySmsAndEmail timer ...... time : " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
         if(true == isProcess) {
             return;
         } else {
@@ -65,11 +67,11 @@ public class SmsEmailTimer {
                 String text = String.format(EMAIL_TEMPLATE, emailInstanceNum) + emailErrorDetail;
                 EmailUtil.sendSimpleEmail(SUBJECT, text, TO);
             }
-
+            LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendErrorLogBySmsAndEmail", null, null);
             smsMap.clear();
             emailMap.clear();
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendErrorLogBySmsAndEmail", null, null, e);
         } finally {
             isProcess = false;
         }

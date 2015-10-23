@@ -85,6 +85,7 @@ public class ApiController {
 		int errorNum = Integer.parseInt(errorCount);
 
 		smsErrorLogService.handleSmsErrorLog(instanceNum, errorNum);
+		LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "receiveErrorLogSms", "instanceCount:"+instanceCount+", errorCount:"+errorCount, SUCCESS);
 		return SUCCESS;
 	}
 
@@ -103,6 +104,7 @@ public class ApiController {
 
 		int instanceNum = Integer.parseInt(instanceCount);
 		emailErrorLogService.handleEmailErrorLog(instanceNum, errorDetail);
+		LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "receiveErrorLogDetailEmail", "instanceCount:" + instanceCount + ", errorDetail:" + errorDetail, SUCCESS);
 		return SUCCESS;
 	}
 }
