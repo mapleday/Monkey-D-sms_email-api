@@ -70,6 +70,28 @@ public class ApiController {
 	}
 
 	/**
+	 * 发送Html邮件，多个收件地址请用“|”分隔
+	 * @param subject	主题
+	 * @param text	邮件内容
+	 * @param to	收件地址
+	 * @return
+	 */
+	@RequestMapping("sendHtmlEmail")
+	@ResponseBody
+	public String sendHtmlEmail(@RequestParam("subject") String subject, @RequestParam("text") String text, @RequestParam("to") String to) {
+		if(null == to || 0 == to.length()) {
+			return FAILURE;
+		}
+		String[] mailTo = to.split("\\|");
+		if(0 == mailTo.length) {
+			return FAILURE;
+		}
+		emailService.sendHtmlEmail(subject, text, mailTo);
+		LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendHtmlEmail", subject+"_"+text+"_"+to, null);
+		return SUCCESS;
+	}
+
+	/**
 	 * 收集出现的实例与错误的总数，以便发送短信
 	 * @param instanceCount	出现错误的机器实例个数
 	 * @param errorCount	出现的错误总数

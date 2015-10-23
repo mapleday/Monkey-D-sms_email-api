@@ -5,4 +5,5 @@ package com.sohu.sms_email.service;
  */
 public interface EmailService {
     void sendSimpleEmail(String subject, String text, String[] to);
+    void sendHtmlEmail(String subject, String text, String[] to);
 }
