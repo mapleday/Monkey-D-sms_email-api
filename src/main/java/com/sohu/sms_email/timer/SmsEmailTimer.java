@@ -35,7 +35,8 @@ public class SmsEmailTimer {
     private String mailSubject = "";
 
     private static final String MSG_TEMPLATE = "你好，过去的5分钟共有%d台服务器实例出现错误，一共出现%d个错误信息，详情请查收邮件。";
-    private static final String EMAIL_TEMPLATE = "你好，过去的5分钟共有%d台服务器实例出现错误，详情如下：<br><br>";
+    private static final String EMAIL_TEMPLATE = "你好，过去的5分钟共有%d台服务器实例出现错误，详情如下：</b></div><br>";
+    private static final String HTML_HEAD = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"> <html xmlns=\"http://www.w3.org/1999/xhtml\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>Demystifying Email Design</title> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/> </head><body style=\"margin: 0; padding: 0;\"> <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\"><tr> <td><br><div align=\"center\"><b>";
     private static boolean isProcess = false;
     private String[] mailAddresses;
     private String[] phoneNumbers;
@@ -80,7 +81,7 @@ public class SmsEmailTimer {
 
             //发送错误提醒邮件
             if(0 != emailInstanceNum) {
-                String text = String.format(EMAIL_TEMPLATE, emailInstanceNum) + emailErrorDetail;
+                String text = HTML_HEAD + String.format(EMAIL_TEMPLATE, emailInstanceNum) + emailErrorDetail + "</td> </tr> </table> </body> </html>";
                 if(!Strings.isNullOrEmpty(mailTo)) {
                     EmailUtil.sendHtmlEmail(mailSubject, text, mailAddresses);
                     LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendErrorLogBySms", mailTo, mailSubject);
