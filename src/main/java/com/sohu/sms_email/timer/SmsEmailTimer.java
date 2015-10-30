@@ -1,12 +1,15 @@
 package com.sohu.sms_email.timer;
 
+import com.google.common.base.Strings;
 import com.sohu.sms_email.bucket.EmailErrorLogBucket;
 import com.sohu.sms_email.bucket.SmsErrorLogBucket;
 import com.sohu.sms_email.model.EmailDetail;
 import com.sohu.sms_email.model.SmsCount;
 import com.sohu.snscommon.utils.EmailUtil;
 import com.sohu.snscommon.utils.LOGGER;
+import com.sohu.snscommon.utils.SMS;
 import com.sohu.snscommon.utils.constant.ModuleEnum;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -22,16 +25,25 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class SmsEmailTimer {
 
-    private static final String PHONE = "13121556477";
+    @Value("#{properties[mail_to]}")
+    private String mailTo = "";
+
+    @Value("#{properties[phone_to]}")
+    private String phoneTo = "";
+
+    @Value("#{properties[mail_subject]}")
+    private String mailSubject = "";
+
     private static final String MSG_TEMPLATE = "你好，过去的5分钟共有%d台服务器实例出现错误，一共出现%d个错误信息，详情请查收邮件。";
     private static final String EMAIL_TEMPLATE = "你好，过去的5分钟共有%d台服务器实例出现错误，详情如下：<br><br>";
-    private static final String SUBJECT = "服务器错误提醒";
-    private static final String[] TO = {"morganyang@sohu-inc.com", "shouqinchen@sohu-inc.com", "guoqingwang@sohu-inc.com", "shousongyang@sohu-inc.com", "jinyingshi@sohu-inc.com", "xuemingzhang@sohu-inc.com"};
     private static boolean isProcess = false;
+    private String[] mailAddresses;
+    private String[] phoneNumbers;
 
     @Scheduled(cron = "0 0/5 * * * ? ")
     //@Scheduled(cron = "0/30 * * * * ? ")
     public void sendSmsAndEmail() {
+        initEnv();  //解析短信和邮件字符串
         System.out.println("sendErrorLogBySmsAndEmail timer ...... time : " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
         if(true == isProcess) {
             return;
@@ -57,16 +69,23 @@ public class SmsEmailTimer {
                 emailErrorDetail += emailDetail.getErrorDetail();
             }
 
+            //发送错误提醒短信
             if(0 != smsInstanceNum) {
                 String msg = String.format(MSG_TEMPLATE, smsInstanceNum, smsErrorNum);
-                //SMS.sendMessage(PHONE, msg);
+                if(!Strings.isNullOrEmpty(phoneTo)) {
+                    SMS.sendGroupMessage(msg, phoneNumbers);
+                    LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendErrorLogBySms", phoneTo, msg);
+                }
             }
 
+            //发送错误提醒邮件
             if(0 != emailInstanceNum) {
                 String text = String.format(EMAIL_TEMPLATE, emailInstanceNum) + emailErrorDetail;
-                EmailUtil.sendHtmlEmail(SUBJECT, text, TO);
+                if(!Strings.isNullOrEmpty(mailTo)) {
+                    EmailUtil.sendHtmlEmail(mailSubject, text, mailAddresses);
+                    LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendErrorLogBySms", mailTo, mailSubject);
+                }
             }
-            LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendErrorLogBySmsAndEmail", null, null);
             smsMap.clear();
             emailMap.clear();
         } catch (Exception e) {
@@ -75,4 +94,45 @@ public class SmsEmailTimer {
             isProcess = false;
         }
     }
+
+    public void initEnv() {
+        //第一次调用方法的时候解析一下发送的邮件地址和发送短信的手机号码
+        if(null == mailAddresses) {
+            mailAddresses = mailTo.split(",");
+            for(int i=0; i<mailAddresses.length; i++) {
+                mailAddresses[i] = mailAddresses[i].trim();
+            }
+        }
+        if(null == phoneNumbers) {
+            phoneNumbers = phoneTo.split(",");
+            for(int i=0; i<phoneNumbers.length; i++) {
+                phoneNumbers[i] = phoneNumbers[i].trim();
+            }
+        }
+    }
+
+    public String getMailTo() {
+        return mailTo;
+    }
+
+    public void setMailTo(String mailTo) {
+        this.mailTo = mailTo;
+    }
+
+    public String getPhoneTo() {
+        return phoneTo;
+    }
+
+    public void setPhoneTo(String phoneTo) {
+        this.phoneTo = phoneTo;
+    }
+
+    public String getMailSubject() {
+        return mailSubject;
+    }
+
+    public void setMailSubject(String mailSubject) {
+        this.mailSubject = mailSubject;
+    }
+
 }
