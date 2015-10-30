@@ -26,7 +26,7 @@ public class SmsEmailTimer {
     private static final String MSG_TEMPLATE = "你好，过去的5分钟共有%d台服务器实例出现错误，一共出现%d个错误信息，详情请查收邮件。";
     private static final String EMAIL_TEMPLATE = "你好，过去的5分钟共有%d台服务器实例出现错误，详情如下：<br><br>";
     private static final String SUBJECT = "服务器错误提醒";
-    private static final String[] TO = {"morganyang@sohu-inc.com", "shouqinchen@sohu-inc.com"};
+    private static final String[] TO = {"morganyang@sohu-inc.com", "shouqinchen@sohu-inc.com", "guoqingwang@sohu-inc.com", "shousongyang@sohu-inc.com", "jinyingshi@sohu-inc.com", "xuemingzhang@sohu-inc.com"};
     private static boolean isProcess = false;
 
     @Scheduled(cron = "0 0/5 * * * ? ")
