@@ -1,10 +1,6 @@
 package com.sohu.sms_email.controller;
 
-import com.sohu.sms_email.service.EmailErrorLogService;
-import com.sohu.sms_email.service.EmailService;
-import com.sohu.sms_email.service.SmsErrorLogService;
-import com.sohu.sms_email.service.SmsService;
-import com.sohu.sns.common.utils.json.JsonMapper;
+import com.sohu.sms_email.service.*;
 import com.sohu.snscommon.utils.LOGGER;
 import com.sohu.snscommon.utils.constant.ModuleEnum;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +15,6 @@ public class ApiController {
 
 	private static final String SUCCESS = "success";
 	private static final String FAILURE = "failure";
-	private JsonMapper jsonMapper = JsonMapper.nonDefaultMapper();
 
 	@Autowired
 	private SmsService smsService;
@@ -29,6 +24,8 @@ public class ApiController {
 	private SmsErrorLogService smsErrorLogService;
 	@Autowired
 	private EmailErrorLogService emailErrorLogService;
+	@Autowired
+	private ApiStatusService apiStatusService;
 
 	/**
 	 * 发送短信
@@ -127,6 +124,16 @@ public class ApiController {
 		int instanceNum = Integer.parseInt(instanceCount);
 		emailErrorLogService.handleEmailErrorLog(instanceNum, errorDetail);
 		LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "receiveErrorLogDetailEmail", "instanceCount:" + instanceCount + ", errorDetail:" + errorDetail, SUCCESS);
+		return SUCCESS;
+	}
+
+	@RequestMapping("sendApiStatusEmail")
+	@ResponseBody
+	public String receiveApiStatus(@RequestParam("apiStatus") String apiStatus) {
+		if(null == apiStatus) {
+			return FAILURE;
+		}
+		apiStatusService.handle(apiStatus);
 		return SUCCESS;
 	}
 }
