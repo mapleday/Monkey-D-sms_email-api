@@ -1,5 +1,6 @@
 package com.sohu.sms_email.controller;
 
+import com.google.common.base.Strings;
 import com.sohu.sms_email.service.*;
 import com.sohu.snscommon.utils.LOGGER;
 import com.sohu.snscommon.utils.constant.ModuleEnum;
@@ -127,13 +128,26 @@ public class ApiController {
 		return SUCCESS;
 	}
 
+	/**
+	 * 接收api使用情况统计
+	 * @param apiStatus
+	 * @return
+	 */
 	@RequestMapping("sendApiStatusEmail")
 	@ResponseBody
 	public String receiveApiStatus(@RequestParam("apiStatus") String apiStatus) {
-		if(null == apiStatus) {
+		if(Strings.isNullOrEmpty(apiStatus)) {
 			return FAILURE;
 		}
 		apiStatusService.handle(apiStatus);
 		return SUCCESS;
+	}
+
+	@RequestMapping("sendTimeoutCount")
+	@ResponseBody
+	public String receiveTimeoutCount(@RequestParam("timeoutCount") String timeoutCount) {
+		if(Strings.isNullOrEmpty(timeoutCount)) {
+			return FAILURE;
+		}
 	}
 }

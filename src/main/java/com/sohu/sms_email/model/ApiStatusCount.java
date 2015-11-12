@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Created by Gary on 2015/11/6.
  */
-public class ApiStatusCount {
+public class ApiStatusCount implements Comparable<ApiStatusCount>{
     private String methodName;
     private String pathName;
     private AtomicLong useCount;
@@ -49,5 +49,10 @@ public class ApiStatusCount {
 
     public void setTimeOutCount(Long timeOutCount) {
         this.timeOutCount = new AtomicLong(timeOutCount);
+    }
+
+    @Override
+    public int compareTo(ApiStatusCount o) {
+        return 0;
     }
 }
