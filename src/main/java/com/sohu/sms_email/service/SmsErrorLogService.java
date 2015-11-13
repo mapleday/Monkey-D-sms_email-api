@@ -5,4 +5,5 @@ package com.sohu.sms_email.service;
  */
 public interface SmsErrorLogService {
     void handleSmsErrorLog(int instanceNum, int errorNum);
+    void handleTimeoutCount(String timeoutCount);
 }

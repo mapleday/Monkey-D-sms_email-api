@@ -143,11 +143,19 @@ public class ApiController {
 		return SUCCESS;
 	}
 
+	/**
+	 * 发送超时短信
+	 * @param timeoutCount
+	 * @return
+	 */
 	@RequestMapping("sendTimeoutCount")
 	@ResponseBody
 	public String receiveTimeoutCount(@RequestParam("timeoutCount") String timeoutCount) {
 		if(Strings.isNullOrEmpty(timeoutCount)) {
 			return FAILURE;
 		}
+		smsErrorLogService.handleTimeoutCount(timeoutCount);
+		LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "receiveTimeoutCount", timeoutCount, null);
+		return SUCCESS;
 	}
 }
