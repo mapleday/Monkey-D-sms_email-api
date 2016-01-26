@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Component("smsService")
 public class SmsServiceImpl implements SmsService {
 
-    public void sendSms(String phoneNo, String msg) {
-        SMS.sendMessage(phoneNo, msg);
+    public boolean sendSms(String phoneNo, String msg) {
+        return SMS.sendMessage(phoneNo, msg);
     }
 }

@@ -7,7 +7,6 @@ import com.sohu.sms_email.model.EmailDetail;
 import com.sohu.sms_email.model.SmsCount;
 import com.sohu.snscommon.utils.EmailUtil;
 import com.sohu.snscommon.utils.LOGGER;
-import com.sohu.snscommon.utils.SMS;
 import com.sohu.snscommon.utils.constant.ModuleEnum;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -42,7 +41,7 @@ public class SmsEmailTimer {
     private String[] phoneNumbers;
 
     @Scheduled(cron = "0 0/5 * * * ? ")
-    //@Scheduled(cron = "0/30 * * * * ? ")
+//    @Scheduled(cron = "0/30 * * * * ? ")
     public void sendSmsAndEmail() {
         initEnv();  //解析短信和邮件字符串
         System.out.println("sendErrorLogBySmsAndEmail timer ...... time : " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
@@ -70,14 +69,14 @@ public class SmsEmailTimer {
                 emailErrorDetail += emailDetail.getErrorDetail();
             }
 
-            //发送错误提醒短信
+/*            //发送错误提醒短信
             if(0 != smsInstanceNum) {
                 String msg = String.format(MSG_TEMPLATE, smsInstanceNum, smsErrorNum);
                 if(!Strings.isNullOrEmpty(phoneTo)) {
                     SMS.sendGroupMessage(msg, phoneNumbers);
                     LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendErrorLogBySms", phoneTo, msg);
                 }
-            }
+            }*/
 
             //发送错误提醒邮件
             if(0 != emailInstanceNum) {

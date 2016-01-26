@@ -38,11 +38,17 @@ public class ApiController {
 	@ResponseBody
 	public String sendSms(@RequestParam("phoneNo") String phoneNo, @RequestParam("msg") String msg){
 		if(null == phoneNo || 0 == phoneNo.length() || null == msg) {
+			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSms", phoneNo+"_"+msg, FAILURE, new Exception("phoneNo or msg is empty!!!"));
 			return FAILURE;
 		}
-		smsService.sendSms(phoneNo, msg);
-		LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSms", phoneNo+"_"+msg, null);
-		return SUCCESS;
+		boolean isSuccess = smsService.sendSms(phoneNo, msg);
+		if(isSuccess) {
+			LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSms", phoneNo+"_"+msg, SUCCESS);
+			return SUCCESS;
+		} else {
+			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSms", phoneNo+"_"+msg, FAILURE, new Exception("SMS send Failed!"));
+			return FAILURE;
+		}
 	}
 
 	/**
@@ -56,15 +62,23 @@ public class ApiController {
 	@ResponseBody
 	public String sendSimpleEmail(@RequestParam("subject") String subject, @RequestParam("text") String text, @RequestParam("to") String to) {
 		if(null == to || 0 == to.length()) {
+			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSimpleEmail", subject+"_"+text+"_"+to, FAILURE, new Exception("receiver should not empty!!"));
 			return FAILURE;
 		}
 		String[] mailTo = to.split("\\|");
 		if(0 == mailTo.length) {
+			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSimpleEmail", subject+"_"+text+"_"+to, FAILURE, new Exception("receiver should not empty!!"));
 			return FAILURE;
 		}
-		emailService.sendSimpleEmail(subject, text, mailTo);
-		LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSimpleEmail", subject+"_"+text+"_"+to, null);
-		return SUCCESS;
+		try {
+			emailService.sendSimpleEmail(subject, text, mailTo);
+			LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSimpleEmail", subject + "_" + text + "_" + to, null);
+			return SUCCESS;
+		} catch (Exception e) {
+			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSimpleEmail", subject + "_" + text + "_" + to, FAILURE, e);
+			return FAILURE;
+		}
+
 	}
 
 	/**
@@ -78,15 +92,22 @@ public class ApiController {
 	@ResponseBody
 	public String sendHtmlEmail(@RequestParam("subject") String subject, @RequestParam("text") String text, @RequestParam("to") String to) {
 		if(null == to || 0 == to.length()) {
+			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendHtmlEmail", subject+"_"+text+"_"+to, FAILURE, new Exception("receiver should not empty!!"));
 			return FAILURE;
 		}
 		String[] mailTo = to.split("\\|");
 		if(0 == mailTo.length) {
+			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendHtmlEmail", subject+"_"+text+"_"+to, FAILURE, new Exception("receiver should not empty!!"));
 			return FAILURE;
 		}
-		emailService.sendHtmlEmail(subject, text, mailTo);
-		LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendHtmlEmail", subject+"_"+text+"_"+to, null);
-		return SUCCESS;
+		try {
+			emailService.sendHtmlEmail(subject, text, mailTo);
+			LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendHtmlEmail", subject+"_"+text+"_"+to, null);
+			return SUCCESS;
+		} catch (Exception e) {
+			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendHtmlEmail", subject + "_" + text + "_" + to, FAILURE, e);
+			return FAILURE;
+		}
 	}
 
 	/**
