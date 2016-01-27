@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by Gary on 2015/11/12.
+ * 发超时短信
  */
 @Component
 public class TimeoutSendSmsTimer {
@@ -33,6 +34,10 @@ public class TimeoutSendSmsTimer {
 
     private Integer minTime;
     private Map<String, Integer> specialInterfaces;
+
+    /**
+     * 正在处理中，不允许再进行处理
+     */
     private boolean isProcess = false;
 
     @Scheduled(cron = "0 0/5 * * * ? ")
@@ -55,6 +60,8 @@ public class TimeoutSendSmsTimer {
             while(iter.hasNext()) {
                 Map.Entry<String, AtomicLong> entry = iter.next();
                 System.out.println("rawCount :" + entry.getKey() + ":" +entry.getValue().get());
+
+                //特殊接口次数，单独配置
                 if(specialInterfaces.containsKey(entry.getKey())) {
                     if(entry.getValue().get() >= specialInterfaces.get(entry.getKey())) {
                         System.out.println("specialCount :" + entry.getKey() + ":" + entry.getValue().get());
@@ -62,12 +69,17 @@ public class TimeoutSendSmsTimer {
                     }
                     continue;
                 }
+
+                //统一的最小阈值处理
                 if(entry.getValue().get() >= minTime) {
                     System.out.println("count :" + entry.getKey() + ":" + entry.getValue().get());
                     smsSb.append(entry.getKey()).append(":").append(entry.getValue().get()).append("次, ");
                 }
             }
+
+            //拼接字符串，并发送短信
             if(0 != smsSb.length()) {
+                //newsInterface此字符，短信无法发送，必须干掉
                 String sms = smsSb.insert(0, "超时提醒:").substring(0, smsSb.length()-2).replaceAll("newsInterface", "newsInter");
                 boolean isSuccess = SMS.sendMessage(receiver, sms);
                 if(isSuccess) {

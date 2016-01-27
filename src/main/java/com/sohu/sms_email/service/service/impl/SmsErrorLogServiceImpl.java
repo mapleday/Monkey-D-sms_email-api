@@ -22,6 +22,13 @@ public class SmsErrorLogServiceImpl implements SmsErrorLogService {
     private static final String KEY = "errorLogCount";
     private JsonMapper jsonMapper = JsonMapper.nonDefaultMapper();
 
+    /**
+     * 发送邮件同时，发送提醒短信
+     * 数据仍在处理，但是不发送短信
+     * 后期可酌情处理 properties 中配置phone_to=13121556477
+     * @param instanceNum
+     * @param errorNum
+     */
     @Override
     public void handleSmsErrorLog(int instanceNum, int errorNum) {
         SmsErrorLogBucket.insertData(KEY, instanceNum, errorNum);
@@ -36,6 +43,8 @@ public class SmsErrorLogServiceImpl implements SmsErrorLogService {
         if(null == contentMap || 0 == contentMap.size()) {
             return;
         }
+
+        //汇总错误次数
         Iterator<Map.Entry<String, Object>> iter = contentMap.entrySet().iterator();
         while(iter.hasNext()) {
             Map.Entry<String ,Object> entry = iter.next();

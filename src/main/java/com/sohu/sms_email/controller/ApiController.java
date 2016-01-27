@@ -112,6 +112,8 @@ public class ApiController {
 
 	/**
 	 * 收集出现的实例与错误的总数，以便发送短信
+     * 发邮件的同时，发送短信
+     * 目前没有发送，只是在后台统计 2016-1-27 16:19:36
 	 * @param instanceCount	出现错误的机器实例个数
 	 * @param errorCount	出现的错误总数
 	 * @return
