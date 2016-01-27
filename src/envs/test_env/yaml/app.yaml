@@ -1,5 +1,5 @@
 appid: 11526
 install: [jetty]
-setenv: {'JVM_ARGS':'-Xms1024m -Xmx1024m -Xmn128m -Djava.awt.headless=true -XX:MaxPermSize=64m -Dfile.encoding=UTF-8'}
+setenv: {'JVM_ARGS':'-Xms6144m -Xmx6144m -Xmn1024m -Djava.awt.headless=true -XX:MaxPermSize=512m -Dfile.encoding=UTF-8'}
 start: $JETTY_START
 webHealth: true
