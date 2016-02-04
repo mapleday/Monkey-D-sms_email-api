@@ -55,8 +55,13 @@ public class EmailErrorLogBucket {
         ConcurrentHashMap<String, EmailDetail> b = getBucket();
         EmailDetail emailDetail  = b.get(key);
         if (null != emailDetail) {
-            emailDetail.addInstanceNum(instanceNum);
-            emailDetail.addErrorDetail(errorDetail);
+            int i = emailDetail.addInstanceNum(instanceNum);
+            //一个实例，错误测试超过10次，后面的详细日志不再显示 防止错误太多，内存溢出 2016-2-4 16:07:49
+            if (i > 10){
+                emailDetail.addErrorDetail(".");
+            }else {
+                emailDetail.addErrorDetail(errorDetail);
+            }
         } else {
             synchronized (EmailErrorLogBucket.class) {
                 if(null != b.get(key)) {

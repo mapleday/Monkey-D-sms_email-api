@@ -22,8 +22,8 @@ public class EmailDetail {
         return instanceNum.get();
     }
 
-    public void addInstanceNum(int instanceNum) {
-        this.instanceNum.addAndGet(instanceNum);
+    public int addInstanceNum(int instanceNum) {
+        return this.instanceNum.addAndGet(instanceNum);
     }
 
     public String getErrorDetail() {

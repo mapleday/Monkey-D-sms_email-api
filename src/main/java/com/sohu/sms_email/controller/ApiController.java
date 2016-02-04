@@ -141,14 +141,22 @@ public class ApiController {
 	@RequestMapping("sendErrorLogEmail")
 	@ResponseBody
 	public String receiveErrorLogEmail(@RequestParam("instanceCount") String instanceCount, @RequestParam("errorDetail") String errorDetail) {
-		if(null == instanceCount || 0 == instanceCount.length() || null == errorDetail ) {
-			return FAILURE;
-		}
-
-		int instanceNum = Integer.parseInt(instanceCount);
-		emailErrorLogService.handleEmailErrorLog(instanceNum, errorDetail);
-		LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "receiveErrorLogDetailEmail", "instanceCount:" + instanceCount + ", errorDetail:" + errorDetail, SUCCESS);
-		return SUCCESS;
+        try {
+            if(null == instanceCount || 0 == instanceCount.length() || null == errorDetail ) {
+                return FAILURE;
+            }
+            int instanceNum = Integer.parseInt(instanceCount);
+            emailErrorLogService.handleEmailErrorLog(instanceNum, errorDetail);
+        } catch (Exception e) {
+            LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "receiveErrorLogDetailEmail",instanceCount,"",e);
+        } finally {
+            //减少日志量 2016-2-4 16:07:26
+            if (errorDetail != null && errorDetail.length() > 50 ){
+                errorDetail = errorDetail.substring(0,50);
+            }
+            LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "receiveErrorLogDetailEmail", "instanceCount:" + instanceCount + ", errorDetail:" + errorDetail, SUCCESS);
+        }
+        return SUCCESS;
 	}
 
 	/**
