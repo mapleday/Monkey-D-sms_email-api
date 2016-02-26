@@ -82,7 +82,13 @@ public class SmsEmailTimer {
             if(0 != emailInstanceNum) {
                 String text = HTML_HEAD + String.format(EMAIL_TEMPLATE, emailInstanceNum) + emailErrorDetail + "</td> </tr> </table> </body> </html>";
                 if(!Strings.isNullOrEmpty(mailTo)) {
-                    EmailUtil.sendHtmlEmail(mailSubject, text, mailAddresses);
+                    try {
+                        //发送邮件可能失败，会导致后面map无法清理，内存暴走 2016年2月26日 16:01:38
+                        EmailUtil.sendHtmlEmail(mailSubject, text, mailAddresses);
+                    } catch (Exception e) {
+                        EmailUtil.sendHtmlEmail(mailSubject, e.getMessage(), mailAddresses);
+                        LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendErrorLogBySmsAndEmail.sendMail", null, null, e);
+                    }
                     LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendErrorLogBySms", mailTo, mailSubject);
                 }
             }
