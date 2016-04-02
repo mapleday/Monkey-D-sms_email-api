@@ -1,8 +1,15 @@
 package com.sohu.sms_email.service.service.impl;
 
+import com.fasterxml.jackson.databind.JavaType;
+import com.google.common.base.Strings;
 import com.sohu.sms_email.bucket.EmailErrorLogBucket;
+import com.sohu.sms_email.model.ErrorLog;
 import com.sohu.sms_email.service.EmailErrorLogService;
+import com.sohu.sms_email.utils.ZipUtils;
+import com.sohu.sns.common.utils.json.JsonMapper;
 import org.springframework.stereotype.Component;
+
+import java.util.*;
 
 /**
  * Created by Gary on 2015/10/22.
@@ -10,11 +17,18 @@ import org.springframework.stereotype.Component;
 @Component("emailErrorLogService")
 public class EmailErrorLogServiceImpl implements EmailErrorLogService {
 
-    private static final String KEY = "emailErrorLog";
+    private static JsonMapper jsonMapper = JsonMapper.nonDefaultMapper();
+    private static JavaType collectionType = jsonMapper.contructCollectionType(LinkedList.class, ErrorLog.class);
 
     @Override
-    public void handleEmailErrorLog(int instanceNum, String errorDetail) {
-        EmailErrorLogBucket.insertData(KEY, instanceNum, errorDetail);
-    }
+    public void handleEmailErrorLog(String errorLogs) {
 
+        if(Strings.isNullOrEmpty(errorLogs)) return;
+        Map<String, String> map = jsonMapper.fromJson(errorLogs, HashMap.class);
+        Set<String> keys = map.keySet();
+        for(String key : keys) {
+            List<ErrorLog> errorLogsList = jsonMapper.fromJson(map.get(key), collectionType);
+            EmailErrorLogBucket.insertData(key, errorLogsList);
+        }
+    }
 }

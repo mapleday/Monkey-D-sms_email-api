@@ -1,8 +1,9 @@
 package com.sohu.sms_email.bucket;
 
 import com.google.common.base.Strings;
-import com.sohu.sms_email.model.EmailDetail;
+import com.sohu.sms_email.model.ErrorLog;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -13,23 +14,23 @@ public class EmailErrorLogBucket {
     /**
      * 存放数据的alpha桶
      */
-    private static final ConcurrentHashMap<String, EmailDetail> bucketAlpha = new ConcurrentHashMap<String, EmailDetail>();
+    private static final ConcurrentHashMap<String, List<ErrorLog>> bucketAlpha = new ConcurrentHashMap<String, List<ErrorLog>>();
     /**
      * 存放数据的beta桶
      */
-    private static final ConcurrentHashMap<String,EmailDetail> bucketBeta = new ConcurrentHashMap<String, EmailDetail>();
+    private static final ConcurrentHashMap<String,List<ErrorLog>> bucketBeta = new ConcurrentHashMap<String, List<ErrorLog>>();
 
     /**
      * 正在工作中的桶
      */
-    private static ConcurrentHashMap<String,EmailDetail> bucket = bucketAlpha;
+    private static ConcurrentHashMap<String,List<ErrorLog>> bucket = bucketAlpha;
 
     /**
      * 切换桶
      * @return
      */
-    public static ConcurrentHashMap<String,EmailDetail> exchange() {
-        ConcurrentHashMap<String, EmailDetail> lastBucket = bucket;
+    public static ConcurrentHashMap<String,List<ErrorLog>> exchange() {
+        ConcurrentHashMap<String, List<ErrorLog>> lastBucket = bucket;
         if(bucket == bucketAlpha){
             bucket = bucketBeta;
         } else {
@@ -38,32 +39,30 @@ public class EmailErrorLogBucket {
         return lastBucket;
     }
 
-    private static ConcurrentHashMap<String,EmailDetail> getBucket() {
+    private static ConcurrentHashMap<String,List<ErrorLog>> getBucket() {
         return bucket;
     }
 
     /**
      * 向桶中插入数据
      * @param key
-     * @param instanceNum
-     * @param errorDetail
+     * @param key
+     * @param errorLogs
      */
-    public static void insertData(String key, int instanceNum, String errorDetail) {
+    public static void insertData(String key, List<ErrorLog> errorLogs) {
         if (Strings.isNullOrEmpty(key)) {
             return;
         }
-        ConcurrentHashMap<String, EmailDetail> b = getBucket();
-        EmailDetail emailDetail  = b.get(key);
-        if (null != emailDetail) {
-            emailDetail.addInstanceNum(instanceNum);
-            emailDetail.addErrorDetail(errorDetail);
+        ConcurrentHashMap<String, List<ErrorLog>> b = getBucket();
+        List<ErrorLog> errorsList = b.get(key);
+        if (null != errorsList) {
+            errorsList.addAll(errorLogs);
         } else {
             synchronized (EmailErrorLogBucket.class) {
                 if(null != b.get(key)) {
-                    insertData(key, instanceNum, errorDetail);
+                    insertData(key, errorLogs);
                 } else {
-                    EmailDetail temp = new EmailDetail(instanceNum, errorDetail);
-                    b.put(key, temp);
+                    b.put(key, errorLogs);
                 }
             }
         }

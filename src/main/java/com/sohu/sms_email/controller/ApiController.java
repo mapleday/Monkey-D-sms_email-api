@@ -2,6 +2,7 @@ package com.sohu.sms_email.controller;
 
 import com.google.common.base.Strings;
 import com.sohu.sms_email.service.*;
+import com.sohu.sms_email.utils.ZipUtils;
 import com.sohu.snscommon.utils.LOGGER;
 import com.sohu.snscommon.utils.constant.ModuleEnum;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,8 +26,6 @@ public class ApiController {
 	private SmsErrorLogService smsErrorLogService;
 	@Autowired
 	private EmailErrorLogService emailErrorLogService;
-	@Autowired
-	private ApiStatusService apiStatusService;
 
 	/**
 	 * 发送短信
@@ -111,67 +110,25 @@ public class ApiController {
 	}
 
 	/**
-	 * 收集出现的实例与错误的总数，以便发送短信
-     * 发邮件的同时，发送短信
-     * 目前没有发送，只是在后台统计 2016-1-27 16:19:36
-	 * @param instanceCount	出现错误的机器实例个数
-	 * @param errorCount	出现的错误总数
-	 * @return
-	 */
-	@RequestMapping("sendErrorLogSms")
-	@ResponseBody
-	public String receiveErrorLogSms(@RequestParam("instanceCount") String instanceCount, @RequestParam("errorCount") String errorCount) {
-		if(null == instanceCount || 0 == instanceCount.length() || null == errorCount || 0 == errorCount.length()) {
-			return FAILURE;
-		}
-		int instanceNum = Integer.parseInt(instanceCount);
-		int errorNum = Integer.parseInt(errorCount);
-
-		smsErrorLogService.handleSmsErrorLog(instanceNum, errorNum);
-		LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "receiveErrorLogSms", "instanceCount:"+instanceCount+", errorCount:"+errorCount, SUCCESS);
-		return SUCCESS;
-	}
-
-	/**
 	 * 收集错误的详细信息，以便发送邮件
-	 * @param instanceCount	出现错误的实例的总数
-	 * @param errorDetail	错误的详情
+	 * @param errorlogs 错误日志
 	 * @return
 	 */
 	@RequestMapping("sendErrorLogEmail")
 	@ResponseBody
-	public String receiveErrorLogEmail(@RequestParam("instanceCount") String instanceCount, @RequestParam("errorDetail") String errorDetail) {
+	public String receiveErrorLogEmail(@RequestParam("errorLogs") String errorlogs) {
         try {
-            if(null == instanceCount || 0 == instanceCount.length() || null == errorDetail ) {
+            if(Strings.isNullOrEmpty(errorlogs)) {
                 return FAILURE;
             }
-            int instanceNum = Integer.parseInt(instanceCount);
-            emailErrorLogService.handleEmailErrorLog(instanceNum, errorDetail);
+			errorlogs = ZipUtils.gunzip(errorlogs);
+            emailErrorLogService.handleEmailErrorLog(errorlogs);
         } catch (Exception e) {
-            LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "receiveErrorLogDetailEmail",instanceCount,"",e);
+            LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "receiveErrorLogDetailEmail",errorlogs,"",e);
         } finally {
-            //减少日志量 2016-2-4 16:07:26
-            if (errorDetail != null && errorDetail.length() > 50 ){
-                errorDetail = errorDetail.substring(0,50);
-            }
-            LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "receiveErrorLogDetailEmail", "instanceCount:" + instanceCount + ", errorDetail:" + errorDetail, SUCCESS);
-        }
-        return SUCCESS;
-	}
-
-	/**
-	 * 接收api使用情况统计
-	 * @param apiStatus
-	 * @return
-	 */
-	@RequestMapping("sendApiStatusEmail")
-	@ResponseBody
-	public String receiveApiStatus(@RequestParam("apiStatus") String apiStatus) {
-		if(Strings.isNullOrEmpty(apiStatus)) {
-			return FAILURE;
+			LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "receieveErrorLogEmail", errorlogs.getBytes().length/(1024.0*1024) + "MB", null);
 		}
-		apiStatusService.handle(apiStatus);
-		return SUCCESS;
+        return SUCCESS;
 	}
 
 	/**

@@ -41,7 +41,6 @@ public class TimeoutSendSmsTimer {
     private boolean isProcess = false;
 
     @Scheduled(cron = "0 0/5 * * * ? ")
-//    @Scheduled(cron = "0/30 * * * * ? ")
     public void process() {
         initEnv();
         if(true == isProcess) {
