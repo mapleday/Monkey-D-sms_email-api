@@ -1,10 +1,12 @@
 package com.sohu.sms_email.controller;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.sohu.sms_email.service.*;
 import com.sohu.sms_email.utils.ZipUtils;
 import com.sohu.snscommon.utils.LOGGER;
 import com.sohu.snscommon.utils.constant.ModuleEnum;
+import junit.framework.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +19,7 @@ public class ApiController {
 
 	private static final String SUCCESS = "success";
 	private static final String FAILURE = "failure";
+	private static final Joiner JOINER = Joiner.on("_").skipNulls();
 
 	@Autowired
 	private SmsService smsService;
@@ -36,16 +39,16 @@ public class ApiController {
 	@RequestMapping("sendSms")
 	@ResponseBody
 	public String sendSms(@RequestParam("phoneNo") String phoneNo, @RequestParam("msg") String msg){
-		if(null == phoneNo || 0 == phoneNo.length() || null == msg) {
-			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSms", phoneNo+"_"+msg, FAILURE, new Exception("phoneNo or msg is empty!!!"));
+		if(Strings.isNullOrEmpty(phoneNo) || Strings.isNullOrEmpty(msg)) {
+			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSms", JOINER.join(phoneNo, msg), FAILURE, new Exception("phoneNo or msg is empty!!!"));
 			return FAILURE;
 		}
 		boolean isSuccess = smsService.sendSms(phoneNo, msg);
 		if(isSuccess) {
-			LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSms", phoneNo+"_"+msg, SUCCESS);
+			LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSms", JOINER.join(phoneNo, msg), SUCCESS);
 			return SUCCESS;
 		} else {
-			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSms", phoneNo+"_"+msg, FAILURE, new Exception("SMS send Failed!"));
+			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSms", JOINER.join(phoneNo, msg), FAILURE, new Exception("SMS send Failed!"));
 			return FAILURE;
 		}
 	}
@@ -60,21 +63,21 @@ public class ApiController {
 	@RequestMapping("sendSimpleEmail")
 	@ResponseBody
 	public String sendSimpleEmail(@RequestParam("subject") String subject, @RequestParam("text") String text, @RequestParam("to") String to) {
-		if(null == to || 0 == to.length()) {
-			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSimpleEmail", subject+"_"+text+"_"+to, FAILURE, new Exception("receiver should not empty!!"));
+		if(Strings.isNullOrEmpty(to)) {
+			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSimpleEmail", JOINER.join(subject, text, to), FAILURE, new Exception("receiver should not empty!!"));
 			return FAILURE;
 		}
 		String[] mailTo = to.split("\\|");
 		if(0 == mailTo.length) {
-			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSimpleEmail", subject+"_"+text+"_"+to, FAILURE, new Exception("receiver should not empty!!"));
+			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSimpleEmail", JOINER.join(subject, text, to), FAILURE, new Exception("receiver should not empty!!"));
 			return FAILURE;
 		}
 		try {
 			emailService.sendSimpleEmail(subject, text, mailTo);
-			LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSimpleEmail", subject + "_" + text + "_" + to, null);
+			LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSimpleEmail", JOINER.join(subject, text, to), null);
 			return SUCCESS;
 		} catch (Exception e) {
-			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSimpleEmail", subject + "_" + text + "_" + to, FAILURE, e);
+			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSimpleEmail", JOINER.join(subject, text, to), FAILURE, e);
 			return FAILURE;
 		}
 
@@ -90,21 +93,21 @@ public class ApiController {
 	@RequestMapping("sendHtmlEmail")
 	@ResponseBody
 	public String sendHtmlEmail(@RequestParam("subject") String subject, @RequestParam("text") String text, @RequestParam("to") String to) {
-		if(null == to || 0 == to.length()) {
-			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendHtmlEmail", subject+"_"+text+"_"+to, FAILURE, new Exception("receiver should not empty!!"));
+		if(Strings.isNullOrEmpty(to)) {
+			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendHtmlEmail", JOINER.join(subject, text, to), FAILURE, new Exception("receiver should not empty!!"));
 			return FAILURE;
 		}
 		String[] mailTo = to.split("\\|");
 		if(0 == mailTo.length) {
-			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendHtmlEmail", subject+"_"+text+"_"+to, FAILURE, new Exception("receiver should not empty!!"));
+			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendHtmlEmail", JOINER.join(subject, text, to), FAILURE, new Exception("receiver should not empty!!"));
 			return FAILURE;
 		}
 		try {
 			emailService.sendHtmlEmail(subject, text, mailTo);
-			LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendHtmlEmail", subject+"_"+text+"_"+to, null);
+			LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendHtmlEmail", JOINER.join(subject, text, to), null);
 			return SUCCESS;
 		} catch (Exception e) {
-			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendHtmlEmail", subject + "_" + text + "_" + to, FAILURE, e);
+			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendHtmlEmail", JOINER.join(subject, text, to), FAILURE, e);
 			return FAILURE;
 		}
 	}
