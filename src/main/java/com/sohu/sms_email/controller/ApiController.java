@@ -2,6 +2,7 @@ package com.sohu.sms_email.controller;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
+import com.sohu.sms_email.enums.CodeEnums;
 import com.sohu.sms_email.service.*;
 import com.sohu.sms_email.utils.ZipUtils;
 import com.sohu.snscommon.utils.LOGGER;
@@ -15,10 +16,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @RequestMapping("/")
-public class ApiController {
+public class ApiController extends AbstractApiController {
 
-	private static final String SUCCESS = "success";
-	private static final String FAILURE = "failure";
 	private static final Joiner JOINER = Joiner.on("_").skipNulls();
 
 	@Autowired
@@ -40,16 +39,16 @@ public class ApiController {
 	@ResponseBody
 	public String sendSms(@RequestParam("phoneNo") String phoneNo, @RequestParam("msg") String msg){
 		if(Strings.isNullOrEmpty(phoneNo) || Strings.isNullOrEmpty(msg)) {
-			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSms", JOINER.join(phoneNo, msg), FAILURE, new Exception("phoneNo or msg is empty!!!"));
-			return FAILURE;
+			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSms", JOINER.join(phoneNo, msg), CodeEnums.PARAMS_ERROR.getName(), new Exception("phoneNo or msg is empty!!!"));
+			return genRetMsg(CodeEnums.PARAMS_ERROR, String.format(paramsError, joiner.join("phoneNo", "msg")));
 		}
 		boolean isSuccess = smsService.sendSms(phoneNo, msg);
 		if(isSuccess) {
-			LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSms", JOINER.join(phoneNo, msg), SUCCESS);
-			return SUCCESS;
+			LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSms", JOINER.join(phoneNo, msg), CodeEnums.SUCCESS.getName());
+			return genRetMsg(CodeEnums.SUCCESS, null);
 		} else {
-			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSms", JOINER.join(phoneNo, msg), FAILURE, new Exception("SMS send Failed!"));
-			return FAILURE;
+			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSms", JOINER.join(phoneNo, msg), CodeEnums.FAILED.getName(), new Exception("SMS send Failed!"));
+			return genRetMsg(CodeEnums.FAILED, smsSendFail);
 		}
 	}
 
@@ -64,21 +63,21 @@ public class ApiController {
 	@ResponseBody
 	public String sendSimpleEmail(@RequestParam("subject") String subject, @RequestParam("text") String text, @RequestParam("to") String to) {
 		if(Strings.isNullOrEmpty(to)) {
-			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSimpleEmail", JOINER.join(subject, text, to), FAILURE, new Exception("receiver should not empty!!"));
-			return FAILURE;
+			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSimpleEmail", JOINER.join(subject, text, to), CodeEnums.PARAMS_ERROR.getName(), new Exception("receiver should not empty!!"));
+			return genRetMsg(CodeEnums.PARAMS_ERROR, String.format(paramsError, "to"));
 		}
 		String[] mailTo = to.split("\\|");
 		if(0 == mailTo.length) {
-			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSimpleEmail", JOINER.join(subject, text, to), FAILURE, new Exception("receiver should not empty!!"));
-			return FAILURE;
+			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSimpleEmail", JOINER.join(subject, text, to), CodeEnums.PARAMS_ERROR.getName(), new Exception("receiver should not empty!!"));
+			return genRetMsg(CodeEnums.PARAMS_ERROR, String.format(paramsError, "to"));
 		}
 		try {
 			emailService.sendSimpleEmail(subject, text, mailTo);
 			LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSimpleEmail", JOINER.join(subject, text, to), null);
-			return SUCCESS;
+			return genRetMsg(CodeEnums.SUCCESS, null);
 		} catch (Exception e) {
-			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSimpleEmail", JOINER.join(subject, text, to), FAILURE, e);
-			return FAILURE;
+			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSimpleEmail", JOINER.join(subject, text, to), CodeEnums.FAILED.getName(), e);
+			return genRetMsg(CodeEnums.FAILED, emailSendFail);
 		}
 
 	}
@@ -94,21 +93,21 @@ public class ApiController {
 	@ResponseBody
 	public String sendHtmlEmail(@RequestParam("subject") String subject, @RequestParam("text") String text, @RequestParam("to") String to) {
 		if(Strings.isNullOrEmpty(to)) {
-			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendHtmlEmail", JOINER.join(subject, text, to), FAILURE, new Exception("receiver should not empty!!"));
-			return FAILURE;
+			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendHtmlEmail", JOINER.join(subject, text, to), CodeEnums.PARAMS_ERROR.getName(), new Exception("receiver should not empty!!"));
+			return genRetMsg(CodeEnums.PARAMS_ERROR, String.format(paramsError, "to"));
 		}
 		String[] mailTo = to.split("\\|");
 		if(0 == mailTo.length) {
-			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendHtmlEmail", JOINER.join(subject, text, to), FAILURE, new Exception("receiver should not empty!!"));
-			return FAILURE;
+			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendHtmlEmail", JOINER.join(subject, text, to), CodeEnums.PARAMS_ERROR.getName(), new Exception("receiver should not empty!!"));
+			return genRetMsg(CodeEnums.PARAMS_ERROR, String.format(paramsError, "to"));
 		}
 		try {
 			emailService.sendHtmlEmail(subject, text, mailTo);
 			LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendHtmlEmail", JOINER.join(subject, text, to), null);
-			return SUCCESS;
+			return genRetMsg(CodeEnums.SUCCESS, null);
 		} catch (Exception e) {
-			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendHtmlEmail", JOINER.join(subject, text, to), FAILURE, e);
-			return FAILURE;
+			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendHtmlEmail", JOINER.join(subject, text, to), CodeEnums.FAILED.getName(), e);
+			return genRetMsg(CodeEnums.FAILED, emailSendFail);
 		}
 	}
 
@@ -122,7 +121,7 @@ public class ApiController {
 	public String receiveErrorLogEmail(@RequestParam("errorLogs") String errorlogs) {
         try {
             if(Strings.isNullOrEmpty(errorlogs)) {
-                return FAILURE;
+                return genRetMsg(CodeEnums.PARAMS_ERROR, String.format(paramsError, "errorLogs"));
             }
 			errorlogs = ZipUtils.gunzip(errorlogs);
             emailErrorLogService.handleEmailErrorLog(errorlogs);
@@ -131,7 +130,7 @@ public class ApiController {
         } finally {
 			LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "receieveErrorLogEmail", errorlogs.getBytes().length/(1024.0*1024) + "MB", null);
 		}
-        return SUCCESS;
+        return genRetMsg(CodeEnums.SUCCESS, null);
 	}
 
 	/**
@@ -143,10 +142,10 @@ public class ApiController {
 	@ResponseBody
 	public String receiveTimeoutCount(@RequestParam("timeoutCount") String timeoutCount) {
 		if(Strings.isNullOrEmpty(timeoutCount)) {
-			return FAILURE;
+			return genRetMsg(CodeEnums.PARAMS_ERROR, String.format(paramsError, "timeoutCount"));
 		}
 		smsErrorLogService.handleTimeoutCount(timeoutCount);
 		LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "receiveTimeoutCount", timeoutCount, null);
-		return SUCCESS;
+		return genRetMsg(CodeEnums.SUCCESS, null);
 	}
 }
