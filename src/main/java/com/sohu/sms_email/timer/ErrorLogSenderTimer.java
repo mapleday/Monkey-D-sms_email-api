@@ -1,19 +1,21 @@
 package com.sohu.sms_email.timer;
 
-import com.google.common.base.Strings;
 import com.sohu.sms_email.bucket.EmailErrorLogBucket;
 import com.sohu.sms_email.model.ErrorLog;
 import com.sohu.sms_email.model.MergedErrorLog;
+import com.sohu.sms_email.utils.DateUtils;
 import com.sohu.sms_email.utils.EmailStringFormatUtils;
+import com.sohu.sns.common.utils.json.JsonMapper;
 import com.sohu.snscommon.utils.EmailUtil;
 import com.sohu.snscommon.utils.LOGGER;
 import com.sohu.snscommon.utils.constant.ModuleEnum;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -23,26 +25,17 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class ErrorLogSenderTimer {
 
-    @Value("#{properties[mail_to]}")
-    private String mailTo = "";
+    private static String[] mailTo;
+    private static String mailSubject;
+    private static String stackTraceUrl;
 
-    @Value("#{properties[phone_to]}")
-    private String phoneTo = "";
-
-    @Value("#{properties[mail_subject]}")
-    private String mailSubject = "";
-
-    private static final String STACKTRACE_URL = "http://sns-monitor-web-test.sohusce.com/queryStackTrace";
     private static final String EMAIL_TEMPLATE = "你好，过去的5分钟共有%d台服务器实例出现错误，详情如下：</b></div><br>";
     private static boolean isProcess = false;
-    private String[] mailAddresses;
-    private String[] phoneNumbers;
 
     @Scheduled(cron = "0 0/5 * * * ? ")
     public void sendSmsAndEmail() {
 
-        initEnv();  //解析短信和邮件字符串
-        System.out.println("sendErrorLogBySmsAndEmail timer ...... time : " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+        System.out.println("sendErrorLogBySmsAndEmail timer ...... time : " + DateUtils.getCurrentTime());
 
         if(true == isProcess) return;
         else isProcess = true;
@@ -77,7 +70,7 @@ public class ErrorLogSenderTimer {
                     emailContentBuffer.append(entry.getValue().getErrorLog().warpHtml())
                             .append(EmailStringFormatUtils.formatTail(
                                     entry.getValue().getParams().toString(),
-                                    STACKTRACE_URL + entry.getValue().getErrorLog().genParams(),
+                                    stackTraceUrl + entry.getValue().getErrorLog().genParams(),
                                     entry.getValue().getTimes()));
                 }
                 emailContentBuffer.append("</table>");
@@ -89,15 +82,15 @@ public class ErrorLogSenderTimer {
             String text = EmailStringFormatUtils.getEmailHead() + String.format(EMAIL_TEMPLATE, emailInstanceNum) +
                     emailContentBuffer.toString() + "</td> </tr> </table> </body> </html>";
 
-            if(!Strings.isNullOrEmpty(mailTo)) {
+            if(null != mailTo || 0 != mailTo.length) {
                 try {
                     //发送邮件可能失败，会导致后面map无法清理，内存暴走 2016年2月26日 16:01:38
-                    EmailUtil.sendHtmlEmail(mailSubject, text, mailAddresses);
+                    EmailUtil.sendHtmlEmail(mailSubject, text, mailTo);
                 } catch (Exception e) {
-                    EmailUtil.sendHtmlEmail(mailSubject, e.getMessage(), mailAddresses);
+                    EmailUtil.sendHtmlEmail(mailSubject, e.getMessage(), mailTo);
                     LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendErrorLogBySmsAndEmail.sendMail", null, null, e);
                 }
-                LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendErrorLogBySms", mailTo, mailSubject);
+                LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendErrorLogBySms", mailTo.toString(), mailSubject);
             }
         } catch (Exception e) {
             LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendErrorLogBySmsAndEmail", null, null, e);
@@ -107,44 +100,20 @@ public class ErrorLogSenderTimer {
         }
     }
 
-    public void initEnv() {
-        //第一次调用方法的时候解析一下发送的邮件地址和发送短信的手机号码
-        if(null == mailAddresses) {
-            mailAddresses = mailTo.split(",");
-            for(int i=0; i<mailAddresses.length; i++) {
-                mailAddresses[i] = mailAddresses[i].trim();
-            }
+    public static void initEnv(String errorLogConfig, String monitorUrls) {
+
+        JsonMapper jsonMapper = JsonMapper.nonDefaultMapper();
+
+        Map<String, Object> errorLogMap = jsonMapper.fromJson(errorLogConfig, HashMap.class);
+        Map<String, String> urls = jsonMapper.fromJson(monitorUrls, HashMap.class);
+
+        List<String> emails = (List<String>) errorLogMap.get("mail_to");
+        mailTo = new String[emails.size()];
+        for(int i=0; i<mailTo.length; i++) {
+            mailTo[i] = emails.get(i);
         }
-        if(null == phoneNumbers) {
-            phoneNumbers = phoneTo.split(",");
-            for(int i=0; i<phoneNumbers.length; i++) {
-                phoneNumbers[i] = phoneNumbers[i].trim();
-            }
-        }
-    }
 
-    public String getMailTo() {
-        return mailTo;
+        mailSubject = (String) errorLogMap.get("mail_subject");
+        stackTraceUrl = urls.get("stackTrace_base_url");
     }
-
-    public void setMailTo(String mailTo) {
-        this.mailTo = mailTo;
-    }
-
-    public String getPhoneTo() {
-        return phoneTo;
-    }
-
-    public void setPhoneTo(String phoneTo) {
-        this.phoneTo = phoneTo;
-    }
-
-    public String getMailSubject() {
-        return mailSubject;
-    }
-
-    public void setMailSubject(String mailSubject) {
-        this.mailSubject = mailSubject;
-    }
-
 }

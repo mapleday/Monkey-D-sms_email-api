@@ -1,6 +1,8 @@
 package com.sohu.sms_email.timer;
 
 import com.sohu.sms_email.bucket.TimeoutBucket;
+import com.sohu.sms_email.utils.DateUtils;
+import com.sohu.sns.common.utils.json.JsonMapper;
 import com.sohu.snscommon.utils.LOGGER;
 import com.sohu.snscommon.utils.SMS;
 import com.sohu.snscommon.utils.constant.ModuleEnum;
@@ -9,10 +11,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -23,17 +22,11 @@ import java.util.concurrent.atomic.AtomicLong;
 @Component
 public class TimeoutSendSmsTimer {
 
-    @Value("#{properties[receive_timeout_person]}")
-    private String receiver;
+    private static String phoneTo;
 
-    @Value("#{properties[min_times]}")
-    private String minTimes;
+    private static Integer minTimes;
 
-    @Value("#{properties[special_interface]}")
-    private String specialInters;
-
-    private Integer minTime;
-    private Map<String, Integer> specialInterfaces;
+    private static Map<String, Integer> specialInterfaces;
 
     /**
      * 正在处理中，不允许再进行处理
@@ -42,16 +35,15 @@ public class TimeoutSendSmsTimer {
 
     @Scheduled(cron = "0 0/5 * * * ? ")
     public void process() {
-        initEnv();
         if(true == isProcess) {
             return;
         } else {
             isProcess = true;
         }
         ConcurrentHashMap<String, AtomicLong> smsMap = TimeoutBucket.exchange();
-        System.out.println("sendTimeoutCountBySms timer ...... time : " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + " ,bucket:" + smsMap.size());
+        System.out.println("sendTimeoutCountBySms timer ...... time : " + DateUtils.getCurrentTime() + " ,bucket:" + smsMap.size());
         try {
-            if(null == smsMap || smsMap.size() == 0) {
+            if(null == smsMap || smsMap.isEmpty()) {
                 return;
             }
             StringBuilder smsSb = new StringBuilder();
@@ -70,7 +62,7 @@ public class TimeoutSendSmsTimer {
                 }
 
                 //统一的最小阈值处理
-                if(entry.getValue().get() >= minTime) {
+                if(entry.getValue().get() >= minTimes) {
                     System.out.println("count :" + entry.getKey() + ":" + entry.getValue().get());
                     smsSb.append(entry.getKey()).append(":").append(entry.getValue().get()).append("次, ");
                 }
@@ -80,12 +72,12 @@ public class TimeoutSendSmsTimer {
             if(0 != smsSb.length()) {
                 //newsInterface此字符，短信无法发送，必须干掉
                 String sms = smsSb.insert(0, "超时提醒:").substring(0, smsSb.length()-2).replaceAll("newsInterface", "newsInter");
-                boolean isSuccess = SMS.sendMessage(receiver, sms);
+                boolean isSuccess = SMS.sendMessage(phoneTo, sms);
                 if(isSuccess) {
-                    LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSmsTimeout", sms, "receiver:"+receiver);
+                    LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSmsTimeout", sms, "receiver:"+phoneTo);
                 } else {
-                    LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSmsTimeout", sms+"——"+receiver, null, new Exception("sendSmsTimeout failed!"));
-                    System.out.println("send message failed!" + new SimpleDateFormat(" yyyy-MM-dd HH:mm:ss").format(new Date()));
+                    LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSmsTimeout", sms+"——"+phoneTo, null, new Exception("sendSmsTimeout failed!"));
+                    System.out.println("send message failed!" + DateUtils.getCurrentTime());
                 }
             }
         } catch (Exception e) {
@@ -101,46 +93,14 @@ public class TimeoutSendSmsTimer {
     /**
      * 解析发送短信相关参数
      */
-    private void initEnv() {
-        if(null == minTime) {
-            try {
-                minTime = Integer.parseInt(minTimes.trim());
-            } catch (Exception e) {
-                minTime = 10;
-            }
-        }
+    public static void initEnv(String timeoutConfig) {
 
-        if(null == specialInterfaces) {
-            specialInterfaces = new HashMap<String, Integer>();
-            String[] arr = specialInters.split(",");
-            for(String str : arr) {
-                String[] pair = str.split(":");
-                specialInterfaces.put(pair[0].trim(), Integer.parseInt(pair[1].trim()));
-            }
-        }
-    }
+        JsonMapper jsonMapper = JsonMapper.nonDefaultMapper();
 
-    public String getReceiver() {
-        return receiver;
-    }
+        Map<String, Object> timeoutConfigMap = jsonMapper.fromJson(timeoutConfig, HashMap.class);
 
-    public void setReceiver(String receiver) {
-        this.receiver = receiver;
-    }
-
-    public String getMinTimes() {
-        return minTimes;
-    }
-
-    public void setMinTimes(String minTimes) {
-        this.minTimes = minTimes;
-    }
-
-    public String getSpecialInters() {
-        return specialInters;
-    }
-
-    public void setSpecialInters(String specialInters) {
-        this.specialInters = specialInters;
+        phoneTo = (String) timeoutConfigMap.get("phone_to");
+        minTimes = (Integer) timeoutConfigMap.get("min_alert_times");
+        specialInterfaces = (Map<String, Integer>) timeoutConfigMap.get("special_interfaces");
     }
 }
