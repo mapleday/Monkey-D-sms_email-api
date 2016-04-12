@@ -38,9 +38,9 @@ public class StartupListenerConfig implements ApplicationListener<ContextRefresh
                 String monitorUrls = new String(zk.getData(ZkPathConfigure.ROOT_NODE + "/sns_monitor/monitor_urls"));
                 String timeoutConfig = new String(zk.getData(ZkPathConfigure.ROOT_NODE + "/sns_monitor/timeout_config"));
 
-                ErrorLogSenderTimer.initEnv(errorLogConfig, monitorUrls);
+                ConstantConfig.initEnv(errorLogConfig, monitorUrls);
                 TimeoutSendSmsTimer.initEnv(timeoutConfig);
-
+                zk.close();
             } catch (Exception e) {
                 LOGGER.errorLog(ModuleEnum.MONITOR_SERVICE, "startUpListener", null, null, e);
                 e.printStackTrace();
