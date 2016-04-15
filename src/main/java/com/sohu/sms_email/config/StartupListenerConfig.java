@@ -1,5 +1,6 @@
 package com.sohu.sms_email.config;
 
+import com.sohu.sms_email.service.service.impl.SelectPersonServiceImpl;
 import com.sohu.sms_email.timer.ErrorLogSenderTimer;
 import com.sohu.sms_email.timer.TimeoutSendSmsTimer;
 import com.sohu.snscommon.utils.LOGGER;
@@ -10,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Service;
+
+import java.nio.channels.SelectableChannel;
 
 /**
  * Created by Gary Chan on 2016/4/4.
@@ -37,9 +40,11 @@ public class StartupListenerConfig implements ApplicationListener<ContextRefresh
                 String errorLogConfig = new String(zk.getData(ZkPathConfigure.ROOT_NODE + "/sns_monitor/errorlog_email_config"));
                 String monitorUrls = new String(zk.getData(ZkPathConfigure.ROOT_NODE + "/sns_monitor/monitor_urls"));
                 String timeoutConfig = new String(zk.getData(ZkPathConfigure.ROOT_NODE + "/sns_monitor/timeout_config"));
+                String dutyConfig = new String(zk.getData(ZkPathConfigure.ROOT_NODE + "/sns_monitor/duty_person_info"));
 
                 ConstantConfig.initEnv(errorLogConfig, monitorUrls);
                 TimeoutSendSmsTimer.initEnv(timeoutConfig);
+                SelectPersonServiceImpl.initEnv(monitorUrls, dutyConfig);
                 zk.close();
             } catch (Exception e) {
                 LOGGER.errorLog(ModuleEnum.MONITOR_SERVICE, "startUpListener", null, null, e);

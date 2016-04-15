@@ -1,5 +1,6 @@
 package com.sohu.sms_email.config;
 
+import com.sohu.sms_email.service.service.impl.SelectPersonServiceImpl;
 import com.sohu.sms_email.timer.ErrorLogSenderTimer;
 import com.sohu.sms_email.timer.TimeoutSendSmsTimer;
 import com.sohu.sns.common.utils.json.JsonMapper;
