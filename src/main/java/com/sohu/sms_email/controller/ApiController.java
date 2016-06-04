@@ -156,7 +156,7 @@ public class ApiController extends AbstractApiController {
 	 * @param email_address	email邮件地址，多个以","分割
 	 * @return
 	 */
-	@RequestMapping("send_error_logs")
+	@RequestMapping("send_error_log")
 	public String sendErrorLogs(@RequestParam("subject") String subject, @RequestParam("error_log") String error_log, @RequestParam("email_address") String email_address) {
 		if(Strings.isNullOrEmpty(email_address)) {
 			return genRetMsg(CodeEnums.PARAMS_ERROR, String.format(paramsError, "email_address"));
@@ -165,7 +165,7 @@ public class ApiController extends AbstractApiController {
 			emailErrorLogService.sendErrorLog(subject, error_log, email_address);
 			return genRetMsg(CodeEnums.SUCCESS, null);
 		} catch (Exception e) {
-			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "receiveErrorLogDetailEmail", subject + email_address, "", e);
+			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendErrorLogs", subject + email_address, "", e);
 			return genRetMsg(CodeEnums.FAILED, emailSendFail);
 		}
 	}
