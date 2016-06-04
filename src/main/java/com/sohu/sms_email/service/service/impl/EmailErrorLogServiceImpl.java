@@ -3,10 +3,12 @@ package com.sohu.sms_email.service.service.impl;
 import com.fasterxml.jackson.databind.JavaType;
 import com.google.common.base.Strings;
 import com.sohu.sms_email.bucket.EmailErrorLogBucket;
+import com.sohu.sms_email.config.ErrorLogEmailConfig;
 import com.sohu.sms_email.model.ErrorLog;
 import com.sohu.sms_email.service.EmailErrorLogService;
 import com.sohu.sms_email.utils.ZipUtils;
 import com.sohu.sns.common.utils.json.JsonMapper;
+import com.sohu.snscommon.utils.EmailUtil;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -30,5 +32,20 @@ public class EmailErrorLogServiceImpl implements EmailErrorLogService {
             List<ErrorLog> errorLogsList = jsonMapper.fromJson(map.get(key), collectionType);
             EmailErrorLogBucket.insertData(key, errorLogsList);
         }
+    }
+
+    @Override
+    public void sendErrorLog(String subject, String errorLog, String emailAddress) throws Exception {
+        if(Strings.isNullOrEmpty(errorLog)) {
+            errorLog = "";
+        } else {
+            errorLog = ZipUtils.gunzip(errorLog);
+        }
+
+        if(Strings.isNullOrEmpty(subject)) {
+            subject = "unknown subject";
+        }
+        String[] emails = emailAddress.split(",");
+        EmailUtil.sendHtmlEmail(subject, ErrorLogEmailConfig.EMAIL_HEAD + errorLog + ErrorLogEmailConfig.EMAIL_TAIL, emails);
     }
 }

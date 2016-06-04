@@ -33,7 +33,7 @@ public class ErrorLogSenderTimer {
     private static final String EMAIL_TEMPLATE = "你好，过去的5分钟共有%d台服务器实例出现错误，详情如下：</b></div><br>";
     private static boolean isProcess = false;
 
-    @Scheduled(cron = "0 0/5 * * * ? ")
+    @Scheduled(cron = "0 0/10 * * * ? ")
     public void sendSmsAndEmail() {
 
         System.out.println("sendErrorLogByEmail timer ...... time : " + DateUtils.getCurrentTime());

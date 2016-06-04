@@ -148,4 +148,25 @@ public class ApiController extends AbstractApiController {
 		LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "receiveTimeoutCount", timeoutCount, null);
 		return genRetMsg(CodeEnums.SUCCESS, null);
 	}
+
+	/**
+	 * 发送错误日志接口
+	 * @param subject 主题
+	 * @param error_log	错误日志
+	 * @param email_address	email邮件地址，多个以","分割
+	 * @return
+	 */
+	@RequestMapping("send_error_logs")
+	public String sendErrorLogs(@RequestParam("subject") String subject, @RequestParam("error_log") String error_log, @RequestParam("email_address") String email_address) {
+		if(Strings.isNullOrEmpty(email_address)) {
+			return genRetMsg(CodeEnums.PARAMS_ERROR, String.format(paramsError, "email_address"));
+		}
+		try {
+			emailErrorLogService.sendErrorLog(subject, error_log, email_address);
+			return genRetMsg(CodeEnums.SUCCESS, null);
+		} catch (Exception e) {
+			LOGGER.errorLog(ModuleEnum.SMS_EMAIL_SERVICE, "receiveErrorLogDetailEmail", subject + email_address, "", e);
+			return genRetMsg(CodeEnums.FAILED, emailSendFail);
+		}
+	}
 }

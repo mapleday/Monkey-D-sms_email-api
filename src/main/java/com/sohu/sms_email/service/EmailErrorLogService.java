@@ -5,4 +5,5 @@ package com.sohu.sms_email.service;
  */
 public interface EmailErrorLogService {
     void handleEmailErrorLog(String errorLogs);
+    void sendErrorLog(String subject, String errorLog, String emailAddress) throws Exception;
 }
