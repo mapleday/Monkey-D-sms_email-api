@@ -38,7 +38,7 @@
 		<dependency>
 			<groupId>com.sohu.snscommon</groupId>
 			<artifactId>db-cluster-common</artifactId>
-			<version>1.2.0-SNAPSHOT</version>
+			<version>1.3.0-SNAPSHOT</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.elasticsearch</groupId>
@@ -61,7 +61,7 @@
 		<dependency>
 			<groupId>com.sohu.snscommon</groupId>
 			<artifactId>kafka-common</artifactId>
-			<version>1.2.0-SNAPSHOT</version>
+			<version>1.3.0-SNAPSHOT</version>
 			<exclusions>
 				<exclusion>
 					<groupId>com.google.guava</groupId>

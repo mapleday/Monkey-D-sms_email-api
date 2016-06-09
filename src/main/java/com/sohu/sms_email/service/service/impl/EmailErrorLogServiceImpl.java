@@ -43,8 +43,9 @@ public class EmailErrorLogServiceImpl implements EmailErrorLogService {
         }
 
         if(Strings.isNullOrEmpty(subject)) {
-            subject = "unknown subject";
+            subject = "unknown";
         }
+        subject = subject + "_服务异常提醒";
         String[] emails = emailAddress.split(",");
         EmailUtil.sendHtmlEmail(subject, ErrorLogEmailConfig.EMAIL_HEAD + errorLog + ErrorLogEmailConfig.EMAIL_TAIL, emails);
     }

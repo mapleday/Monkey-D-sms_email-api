@@ -94,6 +94,10 @@ public class ErrorLogEmailConfig {
                                "color:#00F;" +
                                "font-weight:bold;" +
                            "}" +
+                           ".div2 {" +
+                               "margin:20px auto 0;" +
+                               "font-weight:bold;" +
+                           "}" +
                      "</style>" +
                      "</head>" +
                        "<body>" +

@@ -157,6 +157,7 @@ public class ApiController extends AbstractApiController {
 	 * @return
 	 */
 	@RequestMapping("send_error_log")
+	@ResponseBody
 	public String sendErrorLogs(@RequestParam("subject") String subject, @RequestParam("error_log") String error_log, @RequestParam("email_address") String email_address) {
 		if(Strings.isNullOrEmpty(email_address)) {
 			return genRetMsg(CodeEnums.PARAMS_ERROR, String.format(paramsError, "email_address"));
