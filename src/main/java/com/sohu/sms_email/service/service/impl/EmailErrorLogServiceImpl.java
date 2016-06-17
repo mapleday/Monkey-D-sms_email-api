@@ -39,7 +39,7 @@ public class EmailErrorLogServiceImpl implements EmailErrorLogService {
         if(Strings.isNullOrEmpty(errorLog)) {
             errorLog = "";
         } else {
-            errorLog = ZipUtils.gunzip(errorLog);
+            errorLog = new String(ZipUtils.gunzip(errorLog).getBytes("UTF-8"), "GBK");
         }
 
         if(Strings.isNullOrEmpty(subject)) {
