@@ -11,6 +11,7 @@ import com.sohu.sns.common.utils.json.JsonMapper;
 import com.sohu.snscommon.utils.EmailUtil;
 import org.springframework.stereotype.Component;
 
+import java.net.URLDecoder;
 import java.util.*;
 
 /**
@@ -39,7 +40,7 @@ public class EmailErrorLogServiceImpl implements EmailErrorLogService {
         if(Strings.isNullOrEmpty(errorLog)) {
             errorLog = "";
         } else {
-            errorLog = new String(ZipUtils.gunzip(errorLog).getBytes("UTF-8"), "GBK");
+            errorLog = URLDecoder.decode(ZipUtils.gunzip(errorLog), "UTF-8");
         }
 
         if(Strings.isNullOrEmpty(subject)) {
