@@ -1,7 +1,7 @@
 package com.sohu.sms_email.service.service.impl;
 
 import com.sohu.sms_email.service.SmsService;
-import com.sohu.snscommon.utils.SMS;
+import com.sohu.sms_email.utils.WeixinUtil;
 import org.springframework.stereotype.Component;
 
 /**
@@ -11,6 +11,6 @@ import org.springframework.stereotype.Component;
 public class SmsServiceImpl implements SmsService {
 
     public boolean sendSms(String phoneNo, String msg) {
-        return SMS.sendMessage(phoneNo, msg);
+        return WeixinUtil.sendMessage(phoneNo, msg);
     }
 }

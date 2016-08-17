@@ -2,16 +2,16 @@ package com.sohu.sms_email.timer;
 
 import com.sohu.sms_email.bucket.TimeoutBucket;
 import com.sohu.sms_email.utils.DateUtils;
+import com.sohu.sms_email.utils.WeixinUtil;
 import com.sohu.sns.common.utils.json.JsonMapper;
 import com.sohu.snscommon.utils.LOGGER;
-import com.sohu.snscommon.utils.SMS;
 import com.sohu.snscommon.utils.constant.ModuleEnum;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -72,7 +72,7 @@ public class TimeoutSendSmsTimer {
             if(0 != smsSb.length()) {
                 //newsInterface此字符，短信无法发送，必须干掉
                 String sms = smsSb.insert(0, "超时提醒:").substring(0, smsSb.length()-2).replaceAll("newsInterface", "newsInter");
-                boolean isSuccess = SMS.sendMessage(phoneTo, sms);
+                boolean isSuccess = WeixinUtil.sendMessage(phoneTo, sms);
                 if(isSuccess) {
                     LOGGER.buziLog(ModuleEnum.SMS_EMAIL_SERVICE, "sendSmsTimeout", sms, "receiver:"+phoneTo);
                 } else {

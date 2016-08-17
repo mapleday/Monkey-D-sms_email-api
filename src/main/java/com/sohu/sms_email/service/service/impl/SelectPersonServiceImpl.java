@@ -2,9 +2,9 @@ package com.sohu.sms_email.service.service.impl;
 
 import com.sohu.sms_email.model.PersonInfo;
 import com.sohu.sms_email.utils.DateUtils;
+import com.sohu.sms_email.utils.WeixinUtil;
 import com.sohu.sns.common.utils.json.JsonMapper;
 import com.sohu.snscommon.utils.LOGGER;
-import com.sohu.snscommon.utils.SMS;
 import com.sohu.snscommon.utils.constant.ModuleEnum;
 import com.sohu.snscommon.utils.http.HttpClientUtil;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -59,7 +59,7 @@ public class SelectPersonServiceImpl {
             try {
                 HttpClientUtil.getStringByPost(sms_email_baseUrl+simpleEmailInterface, map, null);
             } catch (Exception e) {
-                SMS.sendMessage(person_admin_phone, String.format(failContent, personInfo.getName()));
+                WeixinUtil.sendMessage(person_admin_phone, String.format(failContent, personInfo.getName()));
             } finally {
                 map.clear();
             }
@@ -69,7 +69,7 @@ public class SelectPersonServiceImpl {
             try {
                 HttpClientUtil.getStringByPost(sms_email_baseUrl+sendSmsInterface, map, null);
             } catch (Exception e) {
-                SMS.sendMessage(person_admin_phone, String.format(failContent, personInfo.getName()));
+                WeixinUtil.sendMessage(person_admin_phone, String.format(failContent, personInfo.getName()));
             } finally {
                 map.clear();
             }
