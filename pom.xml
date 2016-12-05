@@ -31,7 +31,14 @@
 				<env>product_env</env>
 				<profile.active>product_env</profile.active>
 			</properties>
+		</profile>
 
+		<profile>
+			<id>product_sce4_env</id>
+			<properties>
+				<env>product_sce4_env</env>
+				<profile.active>product_sce4_env</profile.active>
+			</properties>
 		</profile>
 	</profiles>
 
@@ -173,7 +180,7 @@
 						</goals>
 						<configuration>
 							<descriptors>
-								<descriptor>assembly.xml</descriptor>
+								<descriptor>src/envs/${env}/assembly/assembly.xml</descriptor>
 							</descriptors>
 							<encoding>UTF-8</encoding>
 							<!--<archive>-->
